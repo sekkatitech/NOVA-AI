@@ -2,12 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 type TabKey = 'home' | 'tenders' | 'nova' | 'alerts';
 
@@ -222,46 +222,48 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
-      <StatusBar style="light" />
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.screen}>
+        <StatusBar style="light" />
 
-      <View style={styles.appShell}>
-        <View style={styles.topBar}>
-          <View>
-            <Text style={styles.eyebrow}>Good morning</Text>
-            <Text style={styles.title}>Maya</Text>
+        <View style={styles.appShell}>
+          <View style={styles.topBar}>
+            <View>
+              <Text style={styles.eyebrow}>Good morning</Text>
+              <Text style={styles.title}>Maya</Text>
+            </View>
+
+            <View style={styles.avatarWrap}>
+              <Text style={styles.avatarText}>M</Text>
+            </View>
           </View>
 
-          <View style={styles.avatarWrap}>
-            <Text style={styles.avatarText}>M</Text>
+          <View style={styles.searchBar}>
+            <Text style={styles.searchText}>Search tender, supplier or client</Text>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            {renderContent()}
+          </ScrollView>
+
+          <View style={styles.bottomNav}>
+            {tabs.map((tab) => {
+              const isActive = tab.key === activeTab;
+
+              return (
+                <Pressable
+                  key={tab.key}
+                  onPress={() => setActiveTab(tab.key)}
+                  style={[styles.navItem, isActive && styles.navItemActive]}
+                >
+                  <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>{tab.label}</Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
-
-        <View style={styles.searchBar}>
-          <Text style={styles.searchText}>Search tender, supplier or client</Text>
-        </View>
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {renderContent()}
-        </ScrollView>
-
-        <View style={styles.bottomNav}>
-          {tabs.map((tab) => {
-            const isActive = tab.key === activeTab;
-
-            return (
-              <Pressable
-                key={tab.key}
-                onPress={() => setActiveTab(tab.key)}
-                style={[styles.navItem, isActive && styles.navItemActive]}
-              >
-                <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>{tab.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
