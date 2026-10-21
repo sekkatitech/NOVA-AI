@@ -32,7 +32,15 @@
           "backgroundColor": "#010E29"
         }
       ],
-      "expo-image"
+      "expo-image",
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "NOVA uses the camera to scan IDs, certificates and tender documents into your TenderPilot AI documents.",
+          "photosPermission": "NOVA uses your photos so you can add pictures of documents you have already taken."
+        }
+      ]
     ]
   }
 }

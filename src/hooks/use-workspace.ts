@@ -34,6 +34,18 @@ export function useNotifications() {
   return useQuery({ queryKey: ['notifications'], queryFn: api.fetchNotifications });
 }
 
+export function useDocuments() {
+  return useQuery({ queryKey: ['documents'], queryFn: api.fetchDocuments });
+}
+
+export function useUploadDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.uploadDocument,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents'] }),
+  });
+}
+
 export function useChecklistByTender() {
   const { data } = useChecklist();
   return useMemo(() => {

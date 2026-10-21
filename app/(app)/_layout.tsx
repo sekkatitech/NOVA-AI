@@ -23,6 +23,7 @@ export default function SignedInLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="account" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="scan" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

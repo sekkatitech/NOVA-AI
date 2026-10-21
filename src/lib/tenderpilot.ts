@@ -50,10 +50,73 @@ export type Notification = {
 
 export type Profile = {
   id: string;
+  company_id: string;
   full_name: string | null;
   role: string;
   companies: { name: string } | null;
 };
+
+export type DocumentCategory =
+  | 'tender_mandatory'
+  | 'tender_technical'
+  | 'tender_submission'
+  | 'tender_other'
+  | 'company_profile'
+  | 'supplier_agreement'
+  | 'pricing_policy'
+  | 'proposal_template'
+  | 'reference_letter'
+  | 'technical_document'
+  | 'past_winning_tender'
+  | 'certificate'
+  | 'supplier_price_list'
+  | 'other';
+
+export type CompanyDocument = {
+  id: string;
+  name: string;
+  category: DocumentCategory;
+  tender_id: string | null;
+  storage_path: string;
+  file_size: number | null;
+  mime_type: string | null;
+  created_at: string;
+  tenders: { id: string; title: string } | null;
+};
+
+// Same labels as the web app's src/config/document-categories.ts.
+export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
+  tender_mandatory: 'Mandatory',
+  tender_technical: 'Technical',
+  tender_submission: 'Submission',
+  tender_other: 'Other',
+  company_profile: 'Company Profile',
+  supplier_agreement: 'Supplier Agreement',
+  pricing_policy: 'Pricing Policy',
+  proposal_template: 'Proposal Template',
+  reference_letter: 'Reference Letter',
+  technical_document: 'Technical Document',
+  past_winning_tender: 'Past Winning Tender',
+  certificate: 'Certificate',
+  supplier_price_list: 'Supplier Price List',
+  other: 'Other',
+};
+
+export const TENDER_DOCUMENT_CATEGORIES: DocumentCategory[] = [
+  'tender_mandatory',
+  'tender_technical',
+  'tender_submission',
+  'tender_other',
+];
+
+// Company-wide categories a phone scan is likely to be: IDs and registrations go under Certificate or Other.
+export const COMPANY_SCAN_CATEGORIES: DocumentCategory[] = [
+  'certificate',
+  'company_profile',
+  'reference_letter',
+  'technical_document',
+  'other',
+];
 
 export const STATUS_LABELS: Record<TenderStatus, string> = {
   discovered: 'Discovered',
@@ -74,7 +137,7 @@ const TENDER_COLUMNS =
 export async function fetchProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, role, companies(name)')
+    .select('id, company_id, full_name, role, companies(name)')
     .eq('id', userId)
     .maybeSingle();
   if (error) throw error;
@@ -128,6 +191,57 @@ export async function fetchNotifications(): Promise<Notification[]> {
     .limit(50);
   if (error) throw error;
   return data as Notification[];
+}
+
+export async function fetchDocuments(): Promise<CompanyDocument[]> {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('id, name, category, tender_id, storage_path, file_size, mime_type, created_at, tenders(id, title)')
+    .neq('category', 'supplier_price_list')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data as unknown as CompanyDocument[];
+}
+
+// Same storage layout as the web app: the private "documents" bucket, under the company's folder.
+export async function uploadDocument(params: {
+  companyId: string;
+  uploadedBy: string;
+  tenderId: string | null;
+  category: DocumentCategory;
+  name: string;
+  file: ArrayBuffer;
+  mimeType: string;
+}) {
+  const { companyId, uploadedBy, tenderId, category, name, file, mimeType } = params;
+  const storagePath = `${companyId}/${tenderId ?? 'scans'}/${Date.now()}-${name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('documents')
+    .upload(storagePath, file, { contentType: mimeType });
+  if (uploadError) throw uploadError;
+
+  const { error } = await supabase.from('documents').insert({
+    company_id: companyId,
+    tender_id: tenderId,
+    category,
+    name,
+    storage_path: storagePath,
+    file_size: file.byteLength,
+    mime_type: mimeType,
+    uploaded_by: uploadedBy,
+  });
+  if (error) {
+    // Don't leave an orphaned file behind if the record can't be saved.
+    await supabase.storage.from('documents').remove([storagePath]);
+    throw error;
+  }
+}
+
+export async function getDocumentUrl(storagePath: string) {
+  const { data, error } = await supabase.storage.from('documents').createSignedUrl(storagePath, 120);
+  if (error) throw error;
+  return data.signedUrl;
 }
 
 export async function setChecklistItemComplete(id: string, isComplete: boolean) {

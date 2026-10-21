@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -53,6 +55,17 @@ export function DashboardTab({ navigate }: { navigate: Navigate }) {
             <Text style={styles.metricLabel}>{metric.label}</Text>
           </Pressable>
         ))}
+      </View>
+
+      <View style={styles.actions}>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/scan')} style={[styles.action, styles.actionPrimary]}>
+          <Ionicons name="scan-outline" size={20} color="#071521" />
+          <Text style={styles.actionPrimaryText}>Scan document</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/documents')} style={styles.action}>
+          <Ionicons name="folder-open-outline" size={20} color={colors.accent} />
+          <Text style={styles.actionText}>Documents</Text>
+        </Pressable>
       </View>
 
       <SectionHeader title="Upcoming deadlines" action="View all" onAction={() => navigate.showTenders('active')} />
@@ -177,6 +190,35 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 11,
     marginTop: 2,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  action: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 214, 255, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  actionPrimary: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  actionText: {
+    color: colors.text,
+    fontWeight: '700',
+  },
+  actionPrimaryText: {
+    color: '#071521',
+    fontWeight: '800',
   },
   list: {
     paddingVertical: 4,

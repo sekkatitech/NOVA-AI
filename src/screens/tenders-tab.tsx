@@ -1,12 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { DocumentRow } from '../components/document-row';
 import { glass } from '../components/glass';
 import { Card, CheckRow, colors, EmptyState, LoadState, ProgressBar, SectionHeader, StatusPill } from '../components/ui';
 import {
   useChecklistByTender,
   useCompleteTask,
+  useDocuments,
   useOpenTasks,
   useTenders,
   useTenderValues,
@@ -152,6 +155,7 @@ function TenderDetail({ tender, onBack }: { tender: Tender; onBack: () => void }
   const tasks = (useOpenTasks().data ?? []).filter((task) => task.tender_id === tender.id);
   const toggleItem = useToggleChecklistItem();
   const completeTask = useCompleteTask();
+  const documents = (useDocuments().data ?? []).filter((doc) => doc.tender_id === tender.id);
   const value = values.data?.[tender.id];
 
   const facts = [
@@ -222,6 +226,25 @@ function TenderDetail({ tender, onBack }: { tender: Tender; onBack: () => void }
               detail={task.due_date ? `Due ${formatDate(task.due_date)}` : undefined}
               onPress={() => completeTask.mutate(task.id)}
             />
+          ))}
+        </Card>
+      )}
+
+      <SectionHeader
+        title="Documents"
+        action="Scan for this tender"
+        onAction={() => router.push({ pathname: '/scan', params: { tenderId: tender.id } })}
+      />
+      {documents.length === 0 ? (
+        <EmptyState
+          icon="folder-open-outline"
+          title="No documents yet"
+          body="Scan returnables like IDs, tax clearance or signed forms straight into this tender."
+        />
+      ) : (
+        <Card style={styles.listCard}>
+          {documents.map((doc) => (
+            <DocumentRow key={doc.id} document={doc} showTender={false} />
           ))}
         </Card>
       )}
