@@ -3,10 +3,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useMemo, useRef, useState } from 'react';
-import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GlassView } from '../../src/components/glass';
 import { colors } from '../../src/components/ui';
 import { useConfirmSignOut } from '../../src/hooks/use-confirm-sign-out';
 import { useNotifications, useProfile, useRefreshAll } from '../../src/hooks/use-workspace';
@@ -33,6 +32,7 @@ export default function HomeScreen() {
   const refreshAll = useRefreshAll();
   const confirmSignOut = useConfirmSignOut();
   const scrollRef = useRef<ScrollView>(null);
+  const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [tenderFilter, setTenderFilter] = useState<TenderFilter>('active');
@@ -96,7 +96,8 @@ export default function HomeScreen() {
       <View style={[styles.glow, styles.glowTop]} pointerEvents="none" />
       <View style={[styles.glow, styles.glowBottom]} pointerEvents="none" />
 
-      <SafeAreaView style={styles.screen}>
+      {/* No bottom edge: the menu bar runs to the bottom of the screen and pads itself. */}
+      <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
         <View style={styles.appShell}>
           <View style={styles.topBar}>
             <View style={styles.topCopy}>
@@ -139,7 +140,8 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        <GlassView intensity={50} style={styles.bottomNav}>
+        {/* Android-style bottom navigation: solid bar, icon in a pill above each label. */}
+        <View style={[styles.bottomNav, { paddingBottom: 10 + insets.bottom }]}>
           {tabs.map((tab) => {
             const isActive = tab.key === activeTab;
 
@@ -150,10 +152,10 @@ export default function HomeScreen() {
                 accessibilityState={{ selected: isActive }}
                 accessibilityLabel={tab.key === 'alerts' && unread > 0 ? `Alerts, ${unread} unread` : tab.label}
                 onPress={() => (tab.key === 'tenders' ? navigate.showTenders(tenderFilter) : navigate.openTab(tab.key))}
-                style={[styles.navItem, isActive && styles.navItemActive]}
+                style={styles.navItem}
               >
-                <View>
-                  <Ionicons name={isActive ? tab.activeIcon : tab.icon} size={22} color={isActive ? colors.accent : '#89a9ba'} />
+                <View style={[styles.iconPill, isActive && styles.iconPillActive]}>
+                  <Ionicons name={isActive ? tab.activeIcon : tab.icon} size={22} color={isActive ? colors.accent : '#9db4c4'} />
                   {tab.key === 'alerts' && unread > 0 && (
                     <View style={styles.badge}>
                       <Text style={styles.badgeText}>{unread > 9 ? '9+' : unread}</Text>
@@ -164,7 +166,7 @@ export default function HomeScreen() {
               </Pressable>
             );
           })}
-        </GlassView>
+        </View>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -251,38 +253,49 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     position: 'absolute',
-    left: 18,
-    right: 18,
-    bottom: 18,
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
-    borderRadius: 24,
-    padding: 6,
-    // Browsers get no blur from GlassView, so the bar needs its own fill or the list shows through it.
-    ...Platform.select({ web: { backgroundColor: 'rgba(7, 21, 33, 0.97)', borderColor: 'rgba(0, 214, 255, 0.3)' } }),
+    paddingTop: 10,
+    paddingHorizontal: 8,
+    backgroundColor: '#0b1c2e',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 214, 255, 0.18)',
+    shadowColor: '#000000',
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 12,
   },
   navItem: {
     flex: 1,
-    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    borderRadius: 18,
   },
-  navItemActive: {
-    backgroundColor: 'rgba(0, 214, 255, 0.14)',
+  iconPill: {
+    width: 64,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconPillActive: {
+    backgroundColor: 'rgba(0, 214, 255, 0.18)',
   },
   navLabel: {
-    color: '#89a9ba',
+    color: '#9db4c4',
     fontWeight: '600',
-    fontSize: 11,
+    fontSize: 12,
   },
   navLabelActive: {
     color: colors.accent,
   },
   badge: {
     position: 'absolute',
-    top: -4,
-    right: -10,
+    top: -2,
+    right: 10,
     minWidth: 18,
     height: 18,
     borderRadius: 9,

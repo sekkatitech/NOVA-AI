@@ -1,6 +1,6 @@
 # NOVA web build for judges and browser users (the native app is built with EAS).
 [build]
-  command = "npx expo export --platform web"
+  command = "npm run build:web"
   publish = "dist"
 
 [build.environment]
