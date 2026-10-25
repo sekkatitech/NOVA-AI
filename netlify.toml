@@ -1,0 +1,12 @@
+# NOVA web build for judges and browser users (the native app is built with EAS).
+[build]
+  command = "npx expo export --platform web"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
