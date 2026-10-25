@@ -106,7 +106,8 @@ export function LoadState({ isLoading, error, onRetry }: { isLoading: boolean; e
     );
   }
   if (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    // Supabase errors are plain objects with a message, not Error instances.
+    const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? String(error);
     return (
       <Card style={styles.empty}>
         <Ionicons name="cloud-offline-outline" size={30} color={colors.red} />

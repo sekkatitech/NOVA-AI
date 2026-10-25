@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useMemo, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GlassView } from '../../src/components/glass';
@@ -257,6 +257,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 24,
     padding: 6,
+    // Browsers get no blur from GlassView, so the bar needs its own fill or the list shows through it.
+    ...Platform.select({ web: { backgroundColor: 'rgba(7, 21, 33, 0.97)', borderColor: 'rgba(0, 214, 255, 0.3)' } }),
   },
   navItem: {
     flex: 1,
