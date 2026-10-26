@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useMemo, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../src/components/ui';
@@ -267,6 +267,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: -4 },
     elevation: 12,
+    // Browser: a drag that starts on the bar must not scroll the page under it.
+    ...Platform.select<object>({ web: { touchAction: 'none' } }),
   },
   navItem: {
     flex: 1,
